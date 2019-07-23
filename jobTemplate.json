@@ -1,0 +1,61 @@
+{
+  "kind": "Job",
+  "apiVersion": "batch/v1",
+  "metadata": {
+    "name": "%JOBNAME%",
+    "namespace": "default",
+    "labels": {
+      "app": "%JOBNAME%"
+    }
+  },
+  "spec": {
+    "template": {
+      "metadata": {
+        "labels": {
+          "app": "%JOBNAME%",
+          "job-name": "%JOBNAME%"
+        }
+      },
+      "spec": {
+        "volumes": [
+          {
+            "name": "%PVC%",
+            "persistentVolumeClaim": {
+              "claimName": "%PVC%"
+            }
+          }
+        ],
+        "containers": [
+          {
+            "name": "%JOBNAME%",
+            "image": "%CONTAINERIMAGE%",
+            "command": [
+%COMMAND%
+            ],
+            "resources": {
+              "limits": {
+                "cpu": "%CPULIMIT%",
+                "memory": "%MEMORYLIMIT%"
+              },
+              "requests": {
+                "cpu": "%CPUREQ%",
+                "memory": "%MEMORYREQ%"
+              }
+            },
+            "volumeMounts": [
+              {
+                "name": "%PVC%",
+                "mountPath": "%MOUNTPATH%",
+                "subPath": "%MOUNTSUB%"
+              }
+            ],
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "imagePullPolicy": "IfNotPresent"
+          }
+        ],
+        "restartPolicy": "Never"
+      }
+    }
+  }
+}
