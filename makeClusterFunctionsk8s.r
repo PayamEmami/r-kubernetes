@@ -1,14 +1,11 @@
 makeClusterFunctionsk8s = function(image, PVC="galaxy-pvc",MOUNTPATH="/home",MOUNTSUB="rstudio",
                                    CPULIMIT="5",MEMORYLIMIT="4G",
-                                   CPUREQ="1",MEMORYREQ="1G",templatePath="jobTemplate.json",tokenPath="/var/run/secrets/kubernetes.io/serviceaccount/token") { 
-  
+                                   CPUREQ="1",MEMORYREQ="1G",templatePath="jobTemplate.json",
+                                   tokenPath="/var/run/secrets/kubernetes.io/serviceaccount/token",
+                                  certificatePath="/var/run/secrets/kubernetes.io/serviceaccount/ca.crt") { 
 
   require("httr")
   require("jsonlite")
-  # we should not set this!
-  # TODO: find a a workaround
-  httr::set_config(config(ssl_verifypeer = 0L))
-  
   
   user = Sys.info()["user"]
   
@@ -22,7 +19,8 @@ makeClusterFunctionsk8s = function(image, PVC="galaxy-pvc",MOUNTPATH="/home",MOU
     print(JobName)
     req_token<-readLines(tokenPath)
     url=paste("https://kubernetes.default.svc.cluster.local/apis/batch/v1/namespaces/default/jobs",sep = "")
-    dataTMP <- GET(url, config = add_headers(Authorization=paste0("Bearer ", req_token)))
+    dataTMP <- GET(url, config = add_headers(Authorization=paste0("Bearer ", req_token)),
+                  config(cainfo=certificatePath))
     dataTMP<-content(dataTMP)
     availableJobs<-c()
     if("items"%in%names(dataTMP))
@@ -54,7 +52,8 @@ to=c(JobName,"galaxy-pvc",image,
     
     url="https://kubernetes.default.svc.cluster.local/apis/batch/v1/namespaces/default/jobs"
     tmpData <- POST(url, config = add_headers(Authorization=paste0("Bearer ", req_token)),body = jobTemplate,encode = "json",
-                    query=list("pretty"=T))
+                    query=list("pretty"=T),
+                   config(cainfo=certificatePath))
     tmpData<-content(tmpData)
 
     
@@ -73,7 +72,8 @@ to=c(JobName,"galaxy-pvc",image,
  
     req_token<-readLines(tokenPath)
     url=paste("https://kubernetes.default.svc.cluster.local/apis/batch/v1/namespaces/default/jobs",sep = "")
-    dataTMP <- GET(url, config = add_headers(Authorization=paste0("Bearer ", req_token)))
+    dataTMP <- GET(url, config = add_headers(Authorization=paste0("Bearer ", req_token)),
+                  config(cainfo=certificatePath))
     dataTMP<-content(dataTMP)
     availableJobs<-c()
     if("items"%in%names(dataTMP))
@@ -90,7 +90,8 @@ to=c(JobName,"galaxy-pvc",image,
     
     req_token<-readLines(tokenPath)
     url=paste("https://kubernetes.default.svc.cluster.local/apis/batch/v1/namespaces/default/jobs/",batch.id,sep = "")
-    dataTMP <- DELETE(url, config = add_headers(Authorization=paste0("Bearer ", req_token)))
+    dataTMP <- DELETE(url, config = add_headers(Authorization=paste0("Bearer ", req_token)),
+                     config(cainfo=certificatePath))
     
 
   }
@@ -99,7 +100,8 @@ to=c(JobName,"galaxy-pvc",image,
     assertRegistry(reg, writeable = FALSE)
     req_token<-readLines(tokenPath)
     url=paste("https://kubernetes.default.svc.cluster.local/apis/batch/v1/namespaces/default/jobs",sep = "")
-    dataTMP <- GET(url, config = add_headers(Authorization=paste0("Bearer ", req_token)))
+    dataTMP <- GET(url, config = add_headers(Authorization=paste0("Bearer ", req_token)),
+                  config(cainfo=certificatePath))
     dataTMP<-content(dataTMP)
     availableJobs<-c()
     if("items"%in%names(dataTMP))
