@@ -5,6 +5,10 @@ makeClusterFunctionsk8s = function(image, PVC="galaxy-pvc",MOUNTPATH="/home",MOU
 
   require("httr")
   require("jsonlite")
+  # we should not set this!
+  # TODO: find a a workaround
+  httr::set_config(config(ssl_verifypeer = 0L))
+  
   
   user = Sys.info()["user"]
   
