@@ -105,7 +105,7 @@ makeClusterFunctionsk8s = function(image, PVC="",MOUNTPATH="/home",MOUNTSUB="",
     availableJobs<-c()
     if("items"%in%names(dataTMP))
     {
-      availableJobs<-sapply(dataTMP$items,function(x){if("active"%in%names(x$metadata$status)){as.character(x$metadata$name)}else{F}}) 
+      availableJobs<-sapply(dataTMP$items,function(x){if("active"%in%names(x$status)){as.character(x$metadata$name)}else{F}}) 
       availableJobs<-availableJobs[availableJobs!=F]
       if(length(availableJobs)==0)availableJobs<-c()
     }
