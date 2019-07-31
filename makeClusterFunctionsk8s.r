@@ -1,3 +1,4 @@
+library(batchtools)
 makeClusterFunctionsk8s = function(image, PVC="",MOUNTPATH="/home",MOUNTSUB="",
                                    CPULIMIT="5",MEMORYLIMIT="4G",
                                    CPUREQ="1",MEMORYREQ="1G",templatePath="jobTemplate.json",
