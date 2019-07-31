@@ -13,6 +13,7 @@ RUN R -e 'install.packages(c("batchtools","future.batchtools","listenv"))'
 To run test the script you can use future.batchtools:
 
 ```
+library(batchtools)
 library(future.batchtools)
 cluster.functions <- makeClusterFunctionsk8s(image = "payamemami/r-ver:latest",MEMORYREQ ="5G",MEMORYLIMIT = "16G",PVC="r-pvc")
 
@@ -31,6 +32,20 @@ as.list(results)
 
 The code above runs 100 PCAs on a large dataset. 
 
+If you want to run a for loop you can use doFuture package:
+```
+library(future.batchtools)
+library(batchtools)
+cluster.functions <- makeClusterFunctionsk8s(image = "payamemami/r-ver:v1",MEMORYREQ ="3G",MEMORYLIMIT = "16G",PVC = "pvc-j5bj4")
+library(doFuture)
+registerDoFuture()
+plan(batchtools_custom, cluster.functions = cluster.functions)
+mu <- 1.0
+sigma <- 2.0
+x <- foreach(i = 1:3, .export = c("mu", "sigma")) %dopar% {
+  rnorm(i, mean = mu, sd = sigma)
+}
+```
 # How to provision R
 
 The easiest way is to either use Rancher or KubeNow! I used Kubenow as it provisions a GlusterFS node which makes things a lot easier!
