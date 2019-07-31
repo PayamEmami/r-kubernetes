@@ -103,3 +103,76 @@ status:
     ingress:
     - {}
 ```
+
+If you prefer a simple setup you can use for example 
+
+```
+---
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  name: rstudio
+  labels:
+    app: payam
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: payam
+      task: rstudio
+  template:
+    metadata:
+      labels:
+        app: payam
+        task: rstudio
+    spec:
+      containers:
+      - name: rstudio
+        image: payamemami/rstudio:v7
+        env:
+        - name: rstudioPWD
+          value: "https://raw.githubusercontent.com/PayamEmami/r-kubernetes/master/USERPW.txt"
+        ports:
+          - containerPort: 8787
+        resources:
+          requests:
+            memory: 2G
+            cpu: 2
+        volumeMounts:
+          - mountPath: "/home"
+            name: shared-volume
+      volumes:
+        - name: shared-volume
+          persistentVolumeClaim:
+            claimName: YOURPVC
+      restartPolicy: Always
+            
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rstudio
+spec:
+  ports:
+  - name: http
+    targetPort: 8787
+    port: 8787
+  selector:
+    app: payam
+    task: rstudio
+    
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: rstudio-ingress
+spec:
+  rules:
+  - host: rstudio.YOURIP.nip.io
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: rstudio
+          servicePort: http
+```
