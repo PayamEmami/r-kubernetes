@@ -75,6 +75,20 @@ kubectl create rolebinding serviceaccounts-admin --clusterrole=admin --serviceac
 
 If you want replication of rstudio server, you might need to set up nginx and use for example:
 
+Deploy nginx:
+
+```
+helm install stable/nginx-ingress --name my-nginx
+
+```
+
+
+```
+helm install stable/nginx-ingress --name my-nginx --set rbac.create=true
+
+```
+for the Ingress
+
 ```
 apiVersion: extensions/v1beta1
 kind: Ingress
