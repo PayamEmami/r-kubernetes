@@ -59,7 +59,7 @@ and then
 
     helm upgrade
     --install
-    --set rstudio_image_registry="docker.io",rstudio_image_tag=":v1",passwd_rstudio="https://raw.githubusercontent.com/PayamEmami/tmp/master/tt.txt",use_ingress="yes",hostname="rstudio",domain="MASTERIP.nip.io",external_ingress_controller="yes",pvc_exists="yes",rstudio_pvc="yourPVC",rstudio_resource_req_cpu="2",rstudio_resource_req_memory="5G"
+    --set rstudio_image_registry="docker.io",rstudio_image_tag=":v1",passwd_rstudio="https://raw.githubusercontent.com/PayamEmami/r-kubernetes/master/USERPW.txt",use_ingress="yes",hostname="rstudio",domain="MASTERIP.nip.io",external_ingress_controller="yes",pvc_exists="yes",rstudio_pvc="yourPVC",rstudio_resource_req_cpu="2",rstudio_resource_req_memory="5G"
     --version "0.1.0"
     "jupyter-rstudio-0.1.0"
     rstudio-helm/rstudio
