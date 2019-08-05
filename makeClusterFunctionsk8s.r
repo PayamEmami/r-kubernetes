@@ -19,20 +19,21 @@ makeClusterFunctionsk8s = function(image, PVC="",MOUNTPATH="/home",MOUNTSUB="",
     JobName<-paste(user,jc$job.hash,sep = "-")
     print(JobName)
     req_token<-readLines(tokenPath)
-    url=paste("https://kubernetes.default.svc.cluster.local/apis/batch/v1/namespaces/default/jobs",sep = "")
+    url=paste("https://kubernetes.default.svc.cluster.local/apis/batch/v1/namespaces/default/jobs/%JOBNAME%/status",sep = "")
+    url<-gsub(pattern = "%JOBNAME%",replacement = JobName,x = url,fixed = T)
     dataTMP <- GET(url, config = add_headers(Authorization=paste0("Bearer ", req_token)),
                    config(cainfo=certificatePath))
     dataTMP<-content(dataTMP)
-    availableJobs<-c()
-    if("items"%in%names(dataTMP))
-    {
-      availableJobs<-sapply(dataTMP$items,function(x){x$metadata$name}) 
-    }
-    
     JobCounter=1
-    while(JobName%in%availableJobs)
+    while(!(dataTMP$kind=="Status" && length(dataTMP$status)==1 && dataTMP$status=="Failure" && dataTMP$reason=="NotFound"))
     {
       JobName<-paste(user,jc$job.hash,JobCounter,sep = "-")
+      url=paste("https://kubernetes.default.svc.cluster.local/apis/batch/v1/namespaces/default/jobs/%JOBNAME%/status",sep = "")
+      url<-gsub(pattern = "%JOBNAME%",replacement = JobName,x = url,fixed = T)
+      dataTMP <- GET(url, config = add_headers(Authorization=paste0("Bearer ", req_token)),
+                     config(cainfo=certificatePath))
+      dataTMP<-content(dataTMP)
+      JobCounter=1
       
     }
     
