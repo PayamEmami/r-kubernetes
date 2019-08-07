@@ -73,6 +73,11 @@ If using Rancher, you need to run this as they have restricted the API usage out
 kubectl create rolebinding serviceaccounts-admin --clusterrole=admin --serviceaccount=default:default --namespace=default
 ```
 
+and
+```
+kubectl create clusterrolebinding default-admin --clusterrole cluster-admin --serviceaccount=default:default
+```
+
 If you want replication of rstudio server, you might need to set up nginx and use for example:
 
 Deploy nginx:
