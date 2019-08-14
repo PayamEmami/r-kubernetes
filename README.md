@@ -99,15 +99,14 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   annotations:
-    field.cattle.io/ingressState: '{"cnN0dWRpby1pbmdyZXNzLW5naW54L2RlZmF1bHQveGlwLmlvLy8vODc4Nw==":""}'
-    field.cattle.io/publicEndpoints: '[{"addresses":[""],"port":80,"protocol":"HTTP","serviceName":"default:rstudio","ingressName":"default:rstudio-ingress-nginx","hostname":"YOURHOSTNAME","path":"/","allNodes":false}]'
-    kubectl.kubernetes.io/last-applied-configuration: '{"apiVersion":"extensions/v1beta1","kind":"Ingress","metadata":{"annotations":{"kubernetes.io/ingress.class":"nginx","nginx.ingress.kubernetes.io/add-base-url":"true","nginx.ingress.kubernetes.io/affinity":"cookie","nginx.ingress.kubernetes.io/proxy-read-timeout":"20d","nginx.ingress.kubernetes.io/proxy-redirect-from":"$scheme://$host/","nginx.ingress.kubernetes.io/proxy-redirect-to":"$scheme://$host/","nginx.ingress.kubernetes.io/rewrite-target":"/","nginx.ingress.kubernetes.io/session-cookie-hash":"sha1","nginx.ingress.kubernetes.io/session-cookie-name":"route","nginx.ingress.kubernetes.io/ssl-redirect":"false"},"name":"rstudio-ingress-nginx","namespace":"default"},"spec":{"rules":[{"http":{"paths":[{"backend":{"serviceName":"rstudio","servicePort":8787},"path":"/"}]}}]}}'
+   ingress.kubernetes.io/affinity: '"cookie"'
+    ingress.kubernetes.io/session-cookie-hash: '"sha1"'
+    ingress.kubernetes.io/session-cookie-name: '"route"'
+    nginx.ingress.kubernetes.io/rewrite-target: /
     kubernetes.io/ingress.class: nginx
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
   name: rstudio-ingress-nginx
   namespace: default
-  resourceVersion: "28660"
-  selfLink: /apis/extensions/v1beta1/namespaces/default/ingresses/rstudio-ingress-nginx
 spec:
   rules:
   - host: YOURHOST
