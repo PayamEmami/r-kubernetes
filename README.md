@@ -95,36 +95,6 @@ helm install stable/nginx-ingress --name my-nginx --set rbac.create=true
 for the Ingress
 
 ```
-apiVersion: extensions/v1beta1
-kind: Ingress
-metadata:
-  annotations:
-   ingress.kubernetes.io/affinity: '"cookie"'
-    ingress.kubernetes.io/session-cookie-hash: '"sha1"'
-    ingress.kubernetes.io/session-cookie-name: '"route"'
-    nginx.ingress.kubernetes.io/rewrite-target: /
-    kubernetes.io/ingress.class: nginx
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
-  name: rstudio-ingress-nginx
-  namespace: default
-spec:
-  rules:
-  - host: YOURHOST
-    http:
-      paths:
-      - backend:
-          serviceName: rstudio2
-          servicePort: 8787
-        path: /
-status:
-  loadBalancer:
-    ingress:
-    - {}
-```
-
-If you prefer a simple setup you can use for example 
-
-```
 ---
 kind: Deployment
 apiVersion: extensions/v1beta1
@@ -133,7 +103,7 @@ metadata:
   labels:
     app: payam
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: payam
@@ -146,10 +116,11 @@ spec:
     spec:
       containers:
       - name: rstudio
-        image: payamemami/rstudio:v7
+        image: payamemami/rstudio:holmdahl
+        #args: ["-e","rstudioPWD=https://raw.githubusercontent.com/PayamEmami/tmp/master/tt.txt"]
         env:
         - name: rstudioPWD
-          value: "https://raw.githubusercontent.com/PayamEmami/r-kubernetes/master/USERPW.txt"
+          value: "https://raw.githubusercontent.com/PayamEmami/tmp/master/tt.txt"
         ports:
           - containerPort: 8787
         resources:
@@ -162,7 +133,7 @@ spec:
       volumes:
         - name: shared-volume
           persistentVolumeClaim:
-            claimName: YOURPVC
+            claimName: [YOURPVC]
       restartPolicy: Always
             
 ---
@@ -184,9 +155,20 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: rstudio-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/add-base-url: "true"
+    nginx.ingress.kubernetes.io/proxy-redirect-from: "$scheme://$host/"
+    nginx.ingress.kubernetes.io/proxy-redirect-to: "$scheme://$host/"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: 20d
+    nginx.ingress.kubernetes.io/affinity: "cookie"
+    nginx.ingress.kubernetes.io/session-cookie-name: "route"
+    nginx.ingress.kubernetes.io/session-cookie-hash: "sha1"
 spec:
   rules:
-  - host: rstudio.YOURIP.nip.io
+  - host: rstudio.[YOURIP].nip.io
     http:
       paths:
       - path: /
