@@ -1,0 +1,80 @@
+---
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  name: rstudio
+  labels:
+    app: payam
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: payam
+      task: rstudio
+  template:
+    metadata:
+      labels:
+        app: payam
+        task: rstudio
+    spec:
+      containers:
+      - name: rstudio
+        image: payamemami/rstudio:holmdahl
+        #args: ["-e","rstudioPWD=https://raw.githubusercontent.com/PayamEmami/tmp/master/tt.txt"]
+        env:
+        - name: rstudioPWD
+          value: "https://raw.githubusercontent.com/PayamEmami/tmp/master/tt.txt"
+        ports:
+          - containerPort: 8787
+        resources:
+          requests:
+            memory: 2G
+            cpu: 2
+        volumeMounts:
+          - mountPath: "/home"
+            name: shared-volume
+      volumes:
+        - name: shared-volume
+          persistentVolumeClaim:
+            claimName: [YOURPVC]
+      restartPolicy: Always
+            
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rstudio
+spec:
+  ports:
+  - name: http
+    targetPort: 8787
+    port: 8787
+  selector:
+    app: payam
+    task: rstudio
+    
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: rstudio-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/add-base-url: "true"
+    nginx.ingress.kubernetes.io/proxy-redirect-from: "$scheme://$host/"
+    nginx.ingress.kubernetes.io/proxy-redirect-to: "$scheme://$host/"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: 20d
+    nginx.ingress.kubernetes.io/affinity: "cookie"
+    nginx.ingress.kubernetes.io/session-cookie-name: "route"
+    nginx.ingress.kubernetes.io/session-cookie-hash: "sha1"
+spec:
+  rules:
+  - host: rstudio.[YOURIP].nip.io
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: rstudio
+          servicePort: http
