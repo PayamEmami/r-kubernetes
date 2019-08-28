@@ -3,7 +3,7 @@ makeClusterFunctionsk8s = function(image, PVC="",MOUNTPATH="/home",MOUNTSUB="",
                                    CPULIMIT="5",MEMORYLIMIT="4G",
                                    CPUREQ="1",MEMORYREQ="1G",templatePath="jobTemplate.json",
                                    tokenPath="/var/run/secrets/kubernetes.io/serviceaccount/token",
-                                   certificatePath="/var/run/secrets/kubernetes.io/serviceaccount/ca.crt") { 
+                                   certificatePath="/var/run/secrets/kubernetes.io/serviceaccount/ca.crt",noCheck=F) { 
   
   require("httr")
   require("jsonlite")
@@ -19,6 +19,8 @@ makeClusterFunctionsk8s = function(image, PVC="",MOUNTPATH="/home",MOUNTSUB="",
     JobName<-paste(user,jc$job.hash,sep = "-")
     print(JobName)
     req_token<-readLines(tokenPath)
+    if(!noCheck)
+      {
     url=paste("https://kubernetes.default.svc.cluster.local/apis/batch/v1/namespaces/default/jobs/%JOBNAME%/status",sep = "")
     url<-gsub(pattern = "%JOBNAME%",replacement = JobName,x = url,fixed = T)
     dataTMP <- GET(url, config = add_headers(Authorization=paste0("Bearer ", req_token)),
@@ -33,10 +35,10 @@ makeClusterFunctionsk8s = function(image, PVC="",MOUNTPATH="/home",MOUNTSUB="",
       dataTMP <- GET(url, config = add_headers(Authorization=paste0("Bearer ", req_token)),
                      config(cainfo=certificatePath))
       dataTMP<-content(dataTMP)
-      JobCounter=1
+      JobCounter=JobCounter+1
       
     }
-    
+    }
     replacementData<-data.frame(from=c("%JOBNAME%","%PVC%","%CONTAINERIMAGE%","%COMMAND%",
                                        "%CPULIMIT%","%MEMORYLIMIT%","%CPUREQ%","%MEMORYREQ%","%MOUNTPATH%","%MOUNTSUB%"),
                                 to=c(JobName,PVC,image,
@@ -59,11 +61,13 @@ makeClusterFunctionsk8s = function(image, PVC="",MOUNTPATH="/home",MOUNTSUB="",
     tmpData<-content(tmpData)
     
     
-    
+    if(!noCheck)
+      {
     if (length(tmpData$status)>0 && tmpData$status=="Failure") {
       no.res.msg = tmpData$message
       return(cfHandleUnknownSubmitError(jobTemplate, 1, tmpData$message))
     }
+      }
     return(makeSubmitJobResult(status = 0L, batch.id = JobName))
   }
   
