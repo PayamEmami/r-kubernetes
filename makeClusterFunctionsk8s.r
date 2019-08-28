@@ -12,10 +12,20 @@ makeClusterFunctionsk8s = function(image, PVC="",MOUNTPATH="/home",MOUNTSUB="",
   
   jobTemplate<-readLines(templatePath)
    req_token<-readLines(tokenPath)
-  
+      replacementData<-data.frame(from=c("%PVC%","%CONTAINERIMAGE%",
+                                       "%CPULIMIT%","%MEMORYLIMIT%","%CPUREQ%","%MEMORYREQ%","%MOUNTPATH%","%MOUNTSUB%"),
+                                to=c(PVC,image,
+                                     CPULIMIT,MEMORYLIMIT,CPUREQ,MEMORYREQ,MOUNTPATH,MOUNTSUB))
+    
+    
+    for(i in 1:nrow(replacementData))
+    {
+      jobTemplate<-gsub(replacementData[i,"from"],replacementData[i,"to"],x = jobTemplate,fixed = T)
+    }
   
   submitJob = function(reg, jc) {
     assertRegistry(reg, writeable = TRUE)
+    jobTemplateSubmit<-jobTemplate
     JobName<-paste(user,jc$job.hash,sep = "-")
     print(JobName)
    
@@ -39,23 +49,21 @@ makeClusterFunctionsk8s = function(image, PVC="",MOUNTPATH="/home",MOUNTSUB="",
       
     }
     }
-    replacementData<-data.frame(from=c("%JOBNAME%","%PVC%","%CONTAINERIMAGE%","%COMMAND%",
-                                       "%CPULIMIT%","%MEMORYLIMIT%","%CPUREQ%","%MEMORYREQ%","%MOUNTPATH%","%MOUNTSUB%"),
-                                to=c(JobName,PVC,image,
+    replacementData<-data.frame(from=c("%JOBNAME%","%COMMAND%"),
+                                to=c(JobName,
                                      paste(shQuote("Rscript",type = "cmd"),shQuote("-e",type = "cmd"),
                                            shQuote(sprintf("batchtools::doJobCollection('%s', '%s')", jc$uri, jc$log.file),type = "cmd"),
-                                           sep = ",\n"),
-                                     CPULIMIT,MEMORYLIMIT,CPUREQ,MEMORYREQ,MOUNTPATH,MOUNTSUB))
+                                           sep = ",\n")))
     
     
     for(i in 1:nrow(replacementData))
     {
-      jobTemplate<-gsub(replacementData[i,"from"],replacementData[i,"to"],x = jobTemplate,fixed = T)
+      jobTemplateSubmit<-gsub(replacementData[i,"from"],replacementData[i,"to"],x = jobTemplateSubmit,fixed = T)
     }
     
     
     url="https://kubernetes.default.svc.cluster.local/apis/batch/v1/namespaces/default/jobs"
-    tmpData <- POST(url, config = add_headers(Authorization=paste0("Bearer ", req_token)),body = jobTemplate,encode = "json",
+    tmpData <- POST(url, config = add_headers(Authorization=paste0("Bearer ", req_token)),body = jobTemplateSubmit,encode = "json",
                     query=list("pretty"=T),
                     config(cainfo=certificatePath))
     tmpData<-content(tmpData)
@@ -65,7 +73,7 @@ makeClusterFunctionsk8s = function(image, PVC="",MOUNTPATH="/home",MOUNTSUB="",
       {
     if (length(tmpData$status)>0 && tmpData$status=="Failure") {
       no.res.msg = tmpData$message
-      return(cfHandleUnknownSubmitError(jobTemplate, 1, tmpData$message))
+      return(cfHandleUnknownSubmitError(jobTemplateSubmit, 1, tmpData$message))
     }
       }
     return(makeSubmitJobResult(status = 0L, batch.id = JobName))
