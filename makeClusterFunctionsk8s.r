@@ -11,14 +11,14 @@ makeClusterFunctionsk8s = function(image, PVC="",MOUNTPATH="/home",MOUNTSUB="",
   user = Sys.info()["user"]
   
   jobTemplate<-readLines(templatePath)
-  
+   req_token<-readLines(tokenPath)
   
   
   submitJob = function(reg, jc) {
     assertRegistry(reg, writeable = TRUE)
     JobName<-paste(user,jc$job.hash,sep = "-")
     print(JobName)
-    req_token<-readLines(tokenPath)
+   
     if(!noCheck)
       {
     url=paste("https://kubernetes.default.svc.cluster.local/apis/batch/v1/namespaces/default/jobs/%JOBNAME%/status",sep = "")
@@ -75,7 +75,6 @@ makeClusterFunctionsk8s = function(image, PVC="",MOUNTPATH="/home",MOUNTSUB="",
   listJobs = function(reg, filter = character(0L)) {
     assertRegistry(reg, writeable = FALSE)
     
-    req_token<-readLines(tokenPath)
     url=paste("https://kubernetes.default.svc.cluster.local/apis/batch/v1/namespaces/default/jobs",sep = "")
     dataTMP <- GET(url, config = add_headers(Authorization=paste0("Bearer ", req_token)),
                    config(cainfo=certificatePath))
@@ -93,7 +92,6 @@ makeClusterFunctionsk8s = function(image, PVC="",MOUNTPATH="/home",MOUNTSUB="",
   killJob = function(reg, batch.id) {
     assertRegistry(reg, writeable = TRUE)
     
-    req_token<-readLines(tokenPath)
     url=paste("https://kubernetes.default.svc.cluster.local/apis/batch/v1/namespaces/default/jobs/",batch.id,sep = "")
     dataTMP <- DELETE(url, config = add_headers(Authorization=paste0("Bearer ", req_token)),
                       config(cainfo=certificatePath))
@@ -103,7 +101,6 @@ makeClusterFunctionsk8s = function(image, PVC="",MOUNTPATH="/home",MOUNTSUB="",
   
   listJobsRunning = function(reg) {
     assertRegistry(reg, writeable = FALSE)
-    req_token<-readLines(tokenPath)
     url=paste("https://kubernetes.default.svc.cluster.local/apis/batch/v1/namespaces/default/jobs",sep = "")
     dataTMP <- GET(url, config = add_headers(Authorization=paste0("Bearer ", req_token)),
                    config(cainfo=certificatePath))
